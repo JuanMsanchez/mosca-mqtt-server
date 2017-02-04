@@ -4,13 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "./node_modules/.bin/nodemon index.js"
   },
   "author": "Juan Manuel Sanchez <usuario.jm@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "ascoltatori": "^3.2.0",
+    "lodash": "^4.17.4",
     "mosca": "^2.2.0",
     "mqtt": "^2.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
   }
 }

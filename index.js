@@ -1,16 +1,14 @@
-//Test subscription
-//$ mosquitto_sub -h 0.0.0.0 -p 1883 -v -t 'users/alice/test' -u alice -P secret
-//mosquitto_sub -h 192.168.0.17 -p 8883 -v -t 'users/alice/test' -u mqtt-user -P mqtt
+var http     = require('http');
+var httpServ = http.createServer();
+var mosca    = require('mosca');
+var _        = require('lodash');
+var users    = require("./db.json").users;
 
-//Test publish
-//$ mosquitto_pub -h 0.0.0.0 -p 1883 -t 'users/alice/test' -u alice -P secret -m "Hi Alice!"
-//$ mosquitto_sub -h 0.0.0.0 -p 1883 -t 'users/alice/test' -u alice -P secret -m "Hi Alice!"
-
-var mosca  = require('mosca');
-
+/* for now there is no need of this will be needed
+https://github.com/mcollina/mosca/wiki#does-it-scale
 var ascoltatore = {
   type: 'mqtt',
-  json: true,
+  json: false,
   mqtt: require('mqtt'),
   url: 'mqtt://192.168.0.17:8883',
   clientId: "mosca-bridge",
@@ -18,36 +16,47 @@ var ascoltatore = {
   password: 'mqtt'
 };
 
-
 var moscaSettings = {
   port: 1883,
   backend: ascoltatore
 };
+*/
 
-var server = new mosca.Server(moscaSettings);
+var moscaSettings = { port: 1883 };
+var mqttServ = new mosca.Server(moscaSettings);
 
-server.on('clientConnected', function(client) {
+//Attach http server for websocket client connection
+//https://github.com/mcollina/mosca/wiki/MQTT-over-Websockets#separate-http-server
+mqttServ.attachHttpServer(httpServ);
+httpServ.listen(3000);
+
+
+
+
+mqttServ.on('clientConnected', function(client) {
   console.log('client connected', client.id);
 });
 
-// fired when a message is received
-server.on('published', function(packet, client) {
-  console.log('Published', packet.payload);
-  console.log(client);
+mqttServ.on('published', function(packet, client) {
+  console.log('Published', packet.payload.toString());
 });
 
-server.on('ready', setup);
+mqttServ.on('ready', setup);
 
 function setup() {
-  server.authenticate = authenticate;
-  server.authorizePublish = authorizePublish;
-  server.authorizeSubscribe = authorizeSubscribe;
+  mqttServ.authenticate = authenticate;
+  mqttServ.authorizePublish = authorizePublish;
+  mqttServ.authorizeSubscribe = authorizeSubscribe;
   console.log('Mosca server is up and running');
 }
 
 // Accepts the connection if the username and password are valid
 var authenticate = function(client, username, password, callback) {
-  var authorized = (username === 'alice' && password.toString() === 'secret');
+  var authorized = _.find(users, function(user){
+    return user.username == username
+      && user.password == password.toString();
+  });
+
   if (authorized) client.user = username;
 
   if (authorized)
@@ -65,21 +74,21 @@ var authorizePublish = function(client, topic, payload, callback) {
   var authorized = client.user == mainTopic;
 
   if (authorized)
-    console.log("authorized publish to topic %s for user %s", mainTopic, client.user);
+    console.log("authorized publish to topic %s for user %s", topic, client.user);
   else
-    console.log("unauthorized publish to topic %s for user %s", mainTopic, client.user);
+    console.log("unauthorized publish to topic %s for user %s", topic, client.user);
   callback(null, authorized);
 };
 
 // In this case the client authorized as alice can subscribe to /users/alice taking
 // the username from the topic and verifing it is the same of the authorized user
-var authorizeSubscribe = function(client, topic, callback) {
+var authorizeSubscribe = function(client, topic, callback){
   var mainTopic = topic.split('/')[1];
   var authorized = client.user == mainTopic;
 
   if (authorized)
-    console.log("authorized subscription topic %s for user %s", mainTopic, client.user);
+    console.log("authorized subscription topic %s for user %s", topic, client.user);
   else
-    console.log("unauthorized subscription topic %s for user %s", mainTopic, client.user);
+    console.log("unauthorized subscription topic %s for user %s", topic, client.user);
   callback(null, authorized);
 };
