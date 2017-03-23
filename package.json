@@ -15,6 +15,7 @@
     "mqtt": "^2.2.1"
   },
   "devDependencies": {
+    "mqtt": "^2.5.0",
     "nodemon": "^1.11.0"
   }
 }
