@@ -1,3 +1,4 @@
+var debug    = require("debug")("mqtt:publisher");
 var mqtt  = require('mqtt');
 var user = require("./db.json").users[0];
 
@@ -39,7 +40,7 @@ Client.on("message", function (topic, payload){
     data     : payload  //payload recived
   };
 
-  console.log("Message recived: %s", JSON.stringify(message));
+  debug("Message recived: %s", JSON.stringify(message));
 
   if(message.name == 'relay1'){
     if(message.data.value)
@@ -90,5 +91,5 @@ Client.on('connect', function (){
 });
 
 Client.on('error', function () {
-  console.log("ERROR!");
+  debug("ERROR!");
 });

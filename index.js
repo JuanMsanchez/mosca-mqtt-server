@@ -1,3 +1,4 @@
+var debug    = require("debug")("mqtt:broker");
 var http     = require('http');
 var httpServ = http.createServer();
 var mosca    = require('mosca');
@@ -34,11 +35,11 @@ httpServ.listen(3000);
 
 
 mqttServ.on('clientConnected', function(client) {
-  console.log('client connected', client.id);
+  debug('client connected', client.id);
 });
 
 mqttServ.on('published', function(packet, client) {
-  console.log('Published', packet.payload.toString());
+  debug('Published', packet.payload.toString());
 });
 
 mqttServ.on('ready', setup);
@@ -47,7 +48,7 @@ function setup() {
   mqttServ.authenticate = authenticate;
   mqttServ.authorizePublish = authorizePublish;
   mqttServ.authorizeSubscribe = authorizeSubscribe;
-  console.log('Mosca server is up and running');
+  debug('Mosca server is up and running');
 }
 
 // Accepts the connection if the username and password are valid
@@ -60,9 +61,9 @@ var authenticate = function(client, username, password, callback) {
   if (authorized) client.user = username;
 
   if (authorized)
-    console.log("authorized user %s:%s",username, password);
+    debug("authorized user %s:%s",username, password);
   else
-    console.log("unauthorized user %s:%s",username, password);
+    debug("unauthorized user %s:%s",username, password);
 
   callback(null, authorized);
 };
@@ -74,9 +75,9 @@ var authorizePublish = function(client, topic, payload, callback) {
   var authorized = client.user == mainTopic;
 
   if (authorized)
-    console.log("authorized publish to topic %s for user %s", topic, client.user);
+    debug("authorized publish to topic %s for user %s", topic, client.user);
   else
-    console.log("unauthorized publish to topic %s for user %s", topic, client.user);
+    debug("unauthorized publish to topic %s for user %s", topic, client.user);
   callback(null, authorized);
 };
 
@@ -87,8 +88,8 @@ var authorizeSubscribe = function(client, topic, callback){
   var authorized = client.user == mainTopic;
 
   if (authorized)
-    console.log("authorized subscription topic %s for user %s", topic, client.user);
+    debug("authorized subscription topic %s for user %s", topic, client.user);
   else
-    console.log("unauthorized subscription topic %s for user %s", topic, client.user);
+    debug("unauthorized subscription topic %s for user %s", topic, client.user);
   callback(null, authorized);
 };

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "./node_modules/.bin/nodemon index.js"
+    "start": "./node_modules/.bin/nodemon index.js",
+    "publisher": "./node_modules/.bin/nodemon publisher.js"
   },
   "author": "Juan Manuel Sanchez <usuario.jm@gmail.com>",
   "license": "ISC",
@@ -15,6 +16,7 @@
     "mqtt": "^2.2.1"
   },
   "devDependencies": {
+    "debug": "^2.6.3",
     "mqtt": "^2.5.0",
     "nodemon": "^1.11.0"
   }
